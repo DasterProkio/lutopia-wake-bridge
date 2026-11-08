@@ -116,7 +116,7 @@ Start with environment variables so secrets are not committed:
 
 ```text
 LUTOPIA_BASE_URL=https://lutopia.app
-LUTOPIA_API_KEY=...
+LUTOPIA_MCP_URL=https://lutopia.app/mcp/xxxx/sse
 LUTOPIA_INJECTOR_EXECUTABLE=/absolute/path/to/inject-lutopia-wake
 LUTOPIA_INJECTOR_ARGS_JSON='["--target","garden-agent"]'
 LUTOPIA_INJECTOR_WORKING_DIRECTORY=/absolute/path/to/runtime

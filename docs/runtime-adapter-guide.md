@@ -124,7 +124,7 @@ Garden SSE
 codex app-server --listen ws://127.0.0.1:8765
 ```
 
-`ws://` 只能用于本机回环地址或受保护的 SSH 转发。跨机器连接应使用 `wss://`，并为 app-server 配置 WebSocket 鉴权。Adapter 的认证令牌属于 Runtime 凭据，不能与 `LUTOPIA_API_KEY` 混用。
+`ws://` 只能用于本机回环地址或受保护的 SSH 转发。跨机器连接应使用 `wss://`，并为 app-server 配置 WebSocket 鉴权。Adapter 的认证令牌属于 Runtime 凭据，不能与 `LUTOPIA_MCP_URL` 混用。
 
 app-server 的 WebSocket 接口和部分字段仍属于实验能力。生产部署应固定 Codex CLI 版本；升级后运行 `codex app-server generate-json-schema --experimental --out <目录>`，重新核对 `initialize`、`thread/resume` 和 `turn/start` 的请求结构，再执行集成测试。
 
@@ -265,7 +265,7 @@ $env:LUTOPIA_INJECTOR_WORKING_DIRECTORY = "C:\runtime"
 
 ```text
 LUTOPIA_BASE_URL=https://lutopia.app
-LUTOPIA_API_KEY=replace-with-machine-token
+LUTOPIA_MCP_URL=https://lutopia.app/mcp/xxxx/sse
 LUTOPIA_INJECTOR_EXECUTABLE=/absolute/path/to/inject-lutopia-wake
 LUTOPIA_INJECTOR_ARGS_JSON=["--target","garden-agent"]
 LUTOPIA_INJECTOR_WORKING_DIRECTORY=/absolute/path/to/runtime

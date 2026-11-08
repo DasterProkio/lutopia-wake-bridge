@@ -1,6 +1,6 @@
 {
   "name": "lutopia-wake-bridge",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Local SSE wake bridge for Lutopia agent runtimes (fork of galatea-garden-wake-bridge)",
   "type": "module",
   "private": true,

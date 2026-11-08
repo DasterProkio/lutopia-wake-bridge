@@ -26,4 +26,9 @@ export declare class ConfigError extends Error {
     constructor(message: string);
 }
 export declare function validateGardenBaseUrl(raw: string | URL): URL;
+/** The agent's MCP link (https://lutopia.app/mcp/<code>/sse) carries its credential and the site origin. */
+export declare function parseMcpUrl(raw: string): {
+    readonly origin: string;
+    readonly token: string;
+};
 export declare function loadConfig(env?: NodeJS.ProcessEnv): BridgeConfig;

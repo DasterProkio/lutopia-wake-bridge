@@ -56,16 +56,27 @@ test("delivers one versioned wake envelope to the configured injector stdin", as
   );
   const controller = new AbortController();
 
-  await adapter.wake({
-    reason: "game_turn_required",
-    message: "游戏轮到你了。请调用 Garden MCP 的 get_my_status 查看当前局面。",
-    signal: controller.signal,
-  });
+  const savedEnv = { key: process.env.LUTOPIA_API_KEY, mcp: process.env.LUTOPIA_MCP_URL };
+  process.env.LUTOPIA_API_KEY = "secret";
+  process.env.LUTOPIA_MCP_URL = "https://lutopia.app/mcp/ab12cd34/sse";
+  try {
+    await adapter.wake({
+      reason: "game_turn_required",
+      message: "游戏轮到你了。请调用 Garden MCP 的 get_my_status 查看当前局面。",
+      signal: controller.signal,
+    });
+  } finally {
+    if (savedEnv.key === undefined) delete process.env.LUTOPIA_API_KEY;
+    else process.env.LUTOPIA_API_KEY = savedEnv.key;
+    if (savedEnv.mcp === undefined) delete process.env.LUTOPIA_MCP_URL;
+    else process.env.LUTOPIA_MCP_URL = savedEnv.mcp;
+  }
 
   assert.equal(executable, "/opt/runtime/bin/inject-lutopia-wake");
   assert.deepEqual(args, ["--target", "garden-agent"]);
   assert.equal(options?.cwd, "/srv/runtime");
   assert.equal(options?.env.LUTOPIA_API_KEY, undefined);
+  assert.equal(options?.env.LUTOPIA_MCP_URL, undefined);
   assert.equal(options?.shell, false);
   assert.equal(options?.signal, controller.signal);
   assert.deepEqual(options?.stdio, ["pipe", "ignore", "pipe"]);

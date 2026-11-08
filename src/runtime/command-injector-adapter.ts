@@ -68,6 +68,7 @@ export class CommandInjectorAdapter implements RuntimeAdapter {
     await new Promise<void>((resolve, reject) => {
       const childEnv = { ...process.env };
       delete childEnv.LUTOPIA_API_KEY;
+      delete childEnv.LUTOPIA_MCP_URL;
       const child = this.#spawn(this.#config.executable, this.#config.args, {
         ...(this.#config.workingDirectory
           ? { cwd: this.#config.workingDirectory }

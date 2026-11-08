@@ -13,13 +13,6 @@ export class ConfigError extends Error {
         this.name = "ConfigError";
     }
 }
-function requireValue(env, name) {
-    const value = env[name]?.trim();
-    if (!value) {
-        throw new ConfigError(`${name} is required`);
-    }
-    return value;
-}
 function isLocalHostname(hostname) {
     return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
@@ -104,10 +97,40 @@ function parseInjectorArgs(raw) {
     }
     return Object.freeze([...parsed]);
 }
+const MCP_PATH = /^\/mcp\/([A-Za-z0-9_-]{4,64})(?:\/sse)?\/?$/;
+/** The agent's MCP link (https://lutopia.app/mcp/<code>/sse) carries its credential and the site origin. */
+export function parseMcpUrl(raw) {
+    let url;
+    try {
+        url = new URL(raw);
+    }
+    catch {
+        throw new ConfigError("LUTOPIA_MCP_URL must be the agent's MCP link, e.g. https://lutopia.app/mcp/xxxx/sse");
+    }
+    const match = MCP_PATH.exec(url.pathname);
+    if (!match || url.search || url.hash || url.username || url.password) {
+        throw new ConfigError("LUTOPIA_MCP_URL must look like https://lutopia.app/mcp/xxxx/sse");
+    }
+    return { origin: url.origin, token: match[1] };
+}
+function resolveCredential(env) {
+    const explicitBase = env.LUTOPIA_BASE_URL?.trim();
+    const apiKey = env.LUTOPIA_API_KEY?.trim();
+    const mcpUrl = env.LUTOPIA_MCP_URL?.trim();
+    if (apiKey) {
+        return { baseUrl: explicitBase || DEFAULT_LUTOPIA_BASE_URL, token: apiKey };
+    }
+    if (mcpUrl) {
+        const parsed = parseMcpUrl(mcpUrl);
+        return { baseUrl: explicitBase || parsed.origin, token: parsed.token };
+    }
+    throw new ConfigError("LUTOPIA_MCP_URL is required (paste your agent's MCP link), or set LUTOPIA_API_KEY");
+}
 export function loadConfig(env = process.env) {
+    const credential = resolveCredential(env);
     return {
-        baseUrl: validateGardenBaseUrl(env.LUTOPIA_BASE_URL?.trim() || DEFAULT_LUTOPIA_BASE_URL),
-        machineToken: requireValue(env, "LUTOPIA_API_KEY"),
+        baseUrl: validateGardenBaseUrl(credential.baseUrl),
+        machineToken: credential.token,
         wakeMessageMap: parseWakeMessageMap(env.LUTOPIA_WAKE_MESSAGE_MAP),
         injector: Object.freeze({
             executable: env.LUTOPIA_INJECTOR_EXECUTABLE?.trim() || undefined,

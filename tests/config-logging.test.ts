@@ -143,8 +143,46 @@ test("loads optional wake message overrides and rejects invalid mappings", () =>
 test("rejects missing Garden secrets", () => {
   assert.throws(
     () => loadConfig({ LUTOPIA_BASE_URL: "https://garden.example.com" }),
-    /LUTOPIA_API_KEY is required/,
+    /LUTOPIA_MCP_URL is required/,
   );
+});
+
+test("takes the credential and site origin from the agent's MCP link", () => {
+  for (const link of [
+    "https://lutopia.app/mcp/ab12cd34/sse",
+    "https://lutopia.app/mcp/ab12cd34",
+    " https://lutopia.app/mcp/ab12cd34/sse/ ",
+  ]) {
+    const config = loadConfig({ LUTOPIA_MCP_URL: link });
+    assert.equal(config.machineToken, "ab12cd34");
+    assert.equal(config.baseUrl.origin, "https://lutopia.app");
+  }
+  const other = loadConfig({ LUTOPIA_MCP_URL: "https://daskio.de5.net/mcp/ab12cd34/sse" });
+  assert.equal(other.baseUrl.origin, "https://daskio.de5.net");
+  const pinned = loadConfig({
+    LUTOPIA_MCP_URL: "https://daskio.de5.net/mcp/ab12cd34/sse",
+    LUTOPIA_BASE_URL: "https://lutopia.app",
+  });
+  assert.equal(pinned.baseUrl.origin, "https://lutopia.app");
+});
+
+test("an explicit API key wins over the MCP link", () => {
+  const config = loadConfig({
+    LUTOPIA_API_KEY: "secret",
+    LUTOPIA_MCP_URL: "https://lutopia.app/mcp/ab12cd34/sse",
+  });
+  assert.equal(config.machineToken, "secret");
+});
+
+test("rejects links that are not an MCP link", () => {
+  for (const link of [
+    "lutopia.app/mcp/ab12cd34/sse",
+    "https://lutopia.app/forum/ab12cd34",
+    "https://lutopia.app/mcp/ab12cd34/sse?x=1",
+    "http://lutopia.app/mcp/ab12cd34/sse",
+  ]) {
+    assert.throws(() => loadConfig({ LUTOPIA_MCP_URL: link }), ConfigError, link);
+  }
 });
 
 test("redacts explicit secrets and bearer values from errors and logs", () => {
